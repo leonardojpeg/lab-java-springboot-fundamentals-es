@@ -55,3 +55,68 @@
 - **Prueba todos los endpoints** en tu navegador o en **Postman**.  
 - **Incluye manejo de errores adecuado**.  
 - Usa **nombres de variables y métodos significativos**.
+
+---
+
+## Solución
+
+Aplicación **Spring Boot 4.0.8** (Java 25) generada con **Spring Initializr** con las
+dependencias **Spring Web** y **Spring Boot DevTools**.
+
+### Cómo ejecutarla
+
+```bash
+mvn spring-boot:run
+```
+
+La aplicación queda disponible en `http://localhost:8080`.
+
+Para compilar y ejecutar los tests:
+
+```bash
+mvn clean package
+```
+
+### Endpoints
+
+| Método | Ruta | Respuesta | Ejemplo |
+| --- | --- | --- | --- |
+| GET | `/hello` | `text/plain` | `Hello World!` |
+| GET | `/hello/{name}` | `text/plain` | `/hello/Leonardo` → `Hello Leonardo!` |
+| GET | `/add/{num1}/{num2}` | `text/plain` | `/add/7/5` → `12` |
+| GET | `/multiply/{num1}/{num2}` | `text/plain` | `/multiply/7/5` → `35` |
+| GET | `/weather/temperature` | `text/plain` | `12 C` (aleatoria entre -10 y 40) |
+| GET | `/weather/condition` | `text/plain` | `Sunny` \| `Rainy` \| `Cloudy` \| `Windy` |
+| GET | `/weather/wind` | `text/plain` | `37 km/h` (aleatoria entre 0 y 100) |
+| GET | `/weather/all` | `application/json` | `{"temperatureCelsius":12,"condition":"Sunny","windSpeedKmh":37}` |
+| GET | `/time` | `text/plain` | `21:28:51` |
+| GET | `/date` | `text/plain` | `2026-10-20` |
+| GET | `/day` | `text/plain` | `Tuesday` |
+| GET | `/all` | `application/json` | `{"time":"21:28:52","date":"2026-10-20","dayOfWeek":"Tuesday"}` |
+
+### Estructura de paquetes
+
+```
+com.ironhack.springbootfundamentals
+├── SpringbootFundamentalsApplication
+├── controller   → GreetingController, WeatherController, TimeController
+├── service      → WeatherService, TimeService
+├── dto          → WeatherReport, TimeInformation, ApiError
+└── exception    → GlobalExceptionHandler, InvalidRequestException
+```
+
+Los controladores reciben sus servicios mediante **inyección por constructor**
+(sin `@Autowired` en campos).
+
+### Manejo de errores
+
+`GlobalExceptionHandler` es un `@RestControllerAdvice` que convierte cualquier
+error en un JSON con `timestamp`, `status`, `error`, `message` y `path`:
+
+| Caso | Estado | Ejemplo de respuesta |
+| --- | --- | --- |
+| Operando no numérico (`/add/abc/5`) | `400` | `"'abc' is not a valid value for 'num1': a whole number is required."` |
+| Nombre vacío o en blanco (`/hello/%20`) | `400` | `"The name must not be blank."` |
+| Desbordamiento numérico | `400` | `"The operands are too large: the result does not fit in a 64-bit integer."` |
+| Ruta inexistente (`/nope`) | `404` | `"No endpoint is mapped to '/nope'."` |
+| Cualquier otro error | `500` | `"An unexpected error occurred."` |
